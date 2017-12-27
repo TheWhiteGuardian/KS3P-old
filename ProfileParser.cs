@@ -84,7 +84,7 @@ namespace KS3P.ProfileParser
             Debug.Log("[KSP_PostProcessing_ProfileParser]: Initializing profile...");
 
             Debug.Log("[KSP_PostProcessing_ProfileParser]: Loading profiles...");
-            profileArray = configFile.GetNodes("Post_Processing");
+            profileArray = configFile.GetNodes("SETUP");
             Debug.Log("[KSP_PostProcessing_ProfileParser]: Found [" + profileArray.Length + "] profiles.");
 
 

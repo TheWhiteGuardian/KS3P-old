@@ -27,6 +27,7 @@ namespace KS3P.Processor
     }
     public class ProfileProcessor
     {
+
         public static void LoadProfile(out PostProcessingProfile ToEdit, List<ConfigNode> profileList, string scene, out bool foundScene)
         {
             //Will store all found nodes written for this specific scene
@@ -2037,7 +2038,10 @@ namespace KS3P.Processor
         static Vector2 ParseFromString(string input)
         {
             //Split input into 2
-            string[] parts = input.Split(new char[','], 2);
+            List<Char> charList = new List<char>();
+            charList.Add(',');
+            Char[] separator = charList.ToArray();
+            string[] parts = input.Split(separator, 2);
             try
             {
                 return new Vector2(float.Parse(parts[0]), float.Parse(parts[1]));

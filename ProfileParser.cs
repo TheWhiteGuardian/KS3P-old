@@ -37,6 +37,11 @@ namespace KS3P.ProfileParser
         public static PostProcessingProfile Settings;
         public static PostProcessingProfile KSC;
         public static PostProcessingProfile TS;
+
+        //For flight subscenes
+        public static PostProcessingProfile EVA, IVA, MapView;
+        public static bool EVAExists, IVAExists, MapViewExists;
+
         public static bool patched = false; //False on startup, will permanently become true once the profiles have been patched.
         public static bool processing = false; //This bool shows whether or not the Profile Parser is busy.
         public static bool creditsExists, SPHExists, VABExists, FlightExists, MMExists, SettingsExists, KSCExists, TSExists; //This is for disabling PP for scenes for which there is no data.
@@ -59,7 +64,7 @@ namespace KS3P.ProfileParser
             if (!loadedCFG) //If the CFG has been loaded already, skip
             {
                 Debug.Log("[KSP_PostProcessing_ProfileParser]: Loading config file...");
-                configFile = ConfigNode.Load(KSPUtil.ApplicationRootPath + "/GameData/KS3P/Config.cfg");
+                configFile = GameDatabase.Instance.GetConfigs("Post_Processing")[0].config; //New method
                 Debug.Log("[KSP_PostProcessing_ProfileParser]: Config file loaded.");
                 loadedCFG = true;
             }
@@ -79,7 +84,7 @@ namespace KS3P.ProfileParser
             Debug.Log("[KSP_PostProcessing_ProfileParser]: Initializing profile...");
 
             Debug.Log("[KSP_PostProcessing_ProfileParser]: Loading profiles...");
-            profileArray = configFile.GetNodes("Post_Processing");
+            profileArray = configFile.GetNodes("SETUP");
             Debug.Log("[KSP_PostProcessing_ProfileParser]: Found [" + profileArray.Length + "] profiles.");
 
 
@@ -124,6 +129,23 @@ namespace KS3P.ProfileParser
             Debug.Log("[KSP_PostProcesing_ProfileParser]: Generating profile for scene [TrackingStation]...");
             ProfileProcessor.LoadProfile(out TS, ProfileList, "TrackingStation", out TSExists);
             if (!TSExists) { Debug.LogWarning("[KSP_PostProcessing_ProfileParser]: Warning! No data found for scene [TrackingStation], disabling Post-Processing for this scene!"); }
+
+
+            //For the subscenes
+            Debug.Log("[KSP_PostProcesing_ProfileParser]: Generating profile for situation [EVA]...");
+            ProfileProcessor.LoadProfile(out EVA, ProfileList, "EVA", out EVAExists);
+            if (!EVAExists) { Debug.LogWarning("[KSP_PostProcessing_ProfileParser]: Warning! No data found for situation [EVA], disabling dynamic Post-Processing for this situation!"); }
+
+            Debug.Log("[KSP_PostProcesing_ProfileParser]: Generating profile for situation [IVA]...");
+            ProfileProcessor.LoadProfile(out IVA, ProfileList, "IVA", out IVAExists);
+            if (!IVAExists) { Debug.LogWarning("[KSP_PostProcessing_ProfileParser]: Warning! No data found for situation [IVA], disabling dynamic Post-Processing for this situation!"); }
+
+            Debug.Log("[KSP_PostProcesing_ProfileParser]: Generating profile for situation [MapView]...");
+            ProfileProcessor.LoadProfile(out MapView, ProfileList, "MapView", out MapViewExists);
+            if (!MapViewExists) { Debug.LogWarning("[KSP_PostProcessing_ProfileParser]: Warning! No data found for situation [MapView], disabling dynamic Post-Processing for this situation!"); }
+
+
+
 
             processing = false;
             Debug.Log("[KSP_PostProcessing_ProfileParser]: Finished initializing profile.");

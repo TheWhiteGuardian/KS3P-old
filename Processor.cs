@@ -27,6 +27,7 @@ namespace KS3P.Processor
     }
     public class ProfileProcessor
     {
+
         public static void LoadProfile(out PostProcessingProfile ToEdit, List<ConfigNode> profileList, string scene, out bool foundScene)
         {
             //Will store all found nodes written for this specific scene
@@ -612,35 +613,51 @@ namespace KS3P.Processor
             #region DirtSettings
             Texture2D dirtTex;
             float dirtIntensity;
+            bool dirtEnabled;
 
             //Texture2D has no TryParse, we'll have to do this manually
-            try
-            {
-                //Try parsing
-                dirtTex = GameDatabase.Instance.GetTexture(BNode.GetValue("Dirt_Tex"), false);
-                //Apply
-                dirtSettings.texture = dirtTex;
 
-                //No texture existence check because the texture can be null without Unity screaming for mercy
-            }
-            //If parse failed
-            catch
-            {
-                Debug.LogException(new InvalidCastException("[KSP_PostProcessing]: Error parsing [Dirt_Tex] for module [Bloom]! Disabling Bloom!"));
-                succeeded = false;
-                return settings;
-            }
+            dirtEnabled = bool.Parse(BNode.GetValue("Dirt_Enabled"));
 
-            //dirtIntensity
-            if(!float.TryParse(BNode.GetValue("Dirt_Intensity"), out dirtIntensity))
+            if (dirtEnabled)
             {
-                Debug.LogException(new InvalidCastException("[KSP_PostProcessing]: Error parsing [Dirt_Intensity] for module [Bloom]! Disabling Bloom!"));
-                succeeded = false;
-                return settings;
+                try
+                {
+                    //Try parsing
+                    dirtTex = GameDatabase.Instance.GetTexture(BNode.GetValue("Dirt_Tex"), false);
+
+                    //EDIT: allow for disabling the dirt effect
+                    //Apply
+                    dirtSettings.texture = dirtTex;
+
+
+                    //No texture existence check because the texture can be null without Unity screaming for mercy
+                }
+                //If parse failed
+                catch
+                {
+                    Debug.LogException(new InvalidCastException("[KSP_PostProcessing]: Error parsing [Dirt_Tex] for module [Bloom]! Disabling Bloom!"));
+                    succeeded = false;
+                    return settings;
+                }
+
+                //dirtIntensity
+                if (!float.TryParse(BNode.GetValue("Dirt_Intensity"), out dirtIntensity))
+                {
+                    Debug.LogException(new InvalidCastException("[KSP_PostProcessing]: Error parsing [Dirt_Intensity] for module [Bloom]! Disabling Bloom!"));
+                    succeeded = false;
+                    return settings;
+                }
+                else
+                {
+                    dirtSettings.intensity = dirtIntensity;
+                }
             }
             else
             {
-                dirtSettings.intensity = dirtIntensity;
+                dirtSettings = BloomModel.LensDirtSettings.defaultSettings; //Else we set to default...
+                dirtSettings.texture = GameDatabase.Instance.GetTexture("KS3P/Textures/Null", false); //Grab the null texture
+                dirtSettings.intensity = 1f; //And disable the effect through intensity
             }
 
             #endregion
@@ -2021,7 +2038,10 @@ namespace KS3P.Processor
         static Vector2 ParseFromString(string input)
         {
             //Split input into 2
-            string[] parts = input.Split(new char[','], 2);
+            List<Char> charList = new List<char>();
+            charList.Add(',');
+            Char[] separator = charList.ToArray();
+            string[] parts = input.Split(separator, 2);
             try
             {
                 return new Vector2(float.Parse(parts[0]), float.Parse(parts[1]));

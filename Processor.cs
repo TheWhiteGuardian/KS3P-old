@@ -612,35 +612,51 @@ namespace KS3P.Processor
             #region DirtSettings
             Texture2D dirtTex;
             float dirtIntensity;
+            bool dirtEnabled;
 
             //Texture2D has no TryParse, we'll have to do this manually
-            try
-            {
-                //Try parsing
-                dirtTex = GameDatabase.Instance.GetTexture(BNode.GetValue("Dirt_Tex"), false);
-                //Apply
-                dirtSettings.texture = dirtTex;
 
-                //No texture existence check because the texture can be null without Unity screaming for mercy
-            }
-            //If parse failed
-            catch
-            {
-                Debug.LogException(new InvalidCastException("[KSP_PostProcessing]: Error parsing [Dirt_Tex] for module [Bloom]! Disabling Bloom!"));
-                succeeded = false;
-                return settings;
-            }
+            dirtEnabled = bool.Parse(BNode.GetValue("Dirt_Enabled"));
 
-            //dirtIntensity
-            if(!float.TryParse(BNode.GetValue("Dirt_Intensity"), out dirtIntensity))
+            if (dirtEnabled)
             {
-                Debug.LogException(new InvalidCastException("[KSP_PostProcessing]: Error parsing [Dirt_Intensity] for module [Bloom]! Disabling Bloom!"));
-                succeeded = false;
-                return settings;
+                try
+                {
+                    //Try parsing
+                    dirtTex = GameDatabase.Instance.GetTexture(BNode.GetValue("Dirt_Tex"), false);
+
+                    //EDIT: allow for disabling the dirt effect
+                    //Apply
+                    dirtSettings.texture = dirtTex;
+
+
+                    //No texture existence check because the texture can be null without Unity screaming for mercy
+                }
+                //If parse failed
+                catch
+                {
+                    Debug.LogException(new InvalidCastException("[KSP_PostProcessing]: Error parsing [Dirt_Tex] for module [Bloom]! Disabling Bloom!"));
+                    succeeded = false;
+                    return settings;
+                }
+
+                //dirtIntensity
+                if (!float.TryParse(BNode.GetValue("Dirt_Intensity"), out dirtIntensity))
+                {
+                    Debug.LogException(new InvalidCastException("[KSP_PostProcessing]: Error parsing [Dirt_Intensity] for module [Bloom]! Disabling Bloom!"));
+                    succeeded = false;
+                    return settings;
+                }
+                else
+                {
+                    dirtSettings.intensity = dirtIntensity;
+                }
             }
             else
             {
-                dirtSettings.intensity = dirtIntensity;
+                dirtSettings = BloomModel.LensDirtSettings.defaultSettings; //Else we set to default...
+                dirtSettings.texture = GameDatabase.Instance.GetTexture("KS3P/Textures/Null", false); //Grab the null texture
+                dirtSettings.intensity = 1f; //And disable the effect through intensity
             }
 
             #endregion

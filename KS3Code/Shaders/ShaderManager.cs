@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 
-namespace KS3P.ShaderLoader
+namespace KS3P.Shaders
 {
     //Mostly borrowed from https://github.com/Kopernicus/Kopernicus/blob/master/src/Kopernicus.Components/ShaderLoader.cs
     //Credit goes to Thomas P.
@@ -12,7 +12,7 @@ namespace KS3P.ShaderLoader
         /// <summary>
         /// The collection of all shaders
         /// </summary>
-        static Dictionary<String, Shader> shaderDictionary = new Dictionary<string, Shader>();
+        static Dictionary<string, Shader> shaderDictionary = new Dictionary<string, Shader>();
 
 
         public static Shader GetShader(string shaderName)
@@ -57,7 +57,7 @@ namespace KS3P.ShaderLoader
             {
                 AssetBundle bundle = www.assetBundle;
                 Shader[] shaders = bundle.LoadAllAssets<Shader>();
-                foreach(Shader shader in shaders)
+                foreach (Shader shader in shaders)
                 {
                     Debug.Log("[KSP_PostProcessing_ShaderLoader]: Adding shader [" + shader.name + "].");
                     shaderDictionary.Add(shader.name, shader);

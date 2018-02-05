@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
-using KS3P.UnityPostProcessing;
 using System.Collections.Generic;
+using KS3P.Shaders;
 
 namespace KS3P.Processor
 {
@@ -24,53 +24,16 @@ namespace KS3P.Processor
         {
             Debug.Log("[KSP_PostProcessing]: Found information for effect [" + name + "]. Starting to process...");
         }
+
     }
     public class ProfileProcessor
     {
-
-        public static void LoadProfile(out PostProcessingProfile ToEdit, List<ConfigNode> profileList, string scene, out bool foundScene)
+        public static PostProcessingProfile ProcessProfile(ConfigNode profiles)
         {
-            //Will store all found nodes written for this specific scene
-            List<ConfigNode> availableNodes = new List<ConfigNode>();
 
-            try
-            {
-                //Add all nodes for this scene
-                foreach (ConfigNode node in profileList)
-                {
-                    if (node.GetValue("Scene") == scene)
-                    {
-                        availableNodes.Add(node);
-                    }
-                }
-                //Make into array
-                ConfigNode[] nodes = availableNodes.ToArray();
-                foundScene = true;
-                ProcessProfile(nodes[0], out ToEdit, foundScene);
-                return;
-            }
-            catch(IndexOutOfRangeException)
-            {
-                Debug.LogException(new IndexOutOfRangeException("[KSP_PostProcessing_Processor_LoadProfile]: Error loading profile: list is empty."));
-                foundScene = false;
-                ToEdit = ScriptableObject.CreateInstance<PostProcessingProfile>();
-                return;
-            }
-        }
-        public static void ProcessProfile(ConfigNode profiles, out PostProcessingProfile prof, bool foundScene)
-        {
-            
             //We make a new, empty profile for editing
             PostProcessingProfile profile = ScriptableObject.CreateInstance<PostProcessingProfile>();
-
-            //Check if there is a scene at all
-            if (!foundScene)
-            {
-                //If not, return empty and abort.
-                prof = profile;
-                return;
-            }
-
+            
             //This config node stores the anti-aliasing properties
             ConfigNode AntiAliasing = profiles.GetNode("Anti_Aliasing");
 
@@ -118,7 +81,7 @@ namespace KS3P.Processor
 
             //If any of the above config nodes is null, we are not using its effect.
 
-
+            #region AntiAliasing
             if (AntiAliasing != null)
             {
                 TWG.Load("AntiAliasing");
@@ -129,6 +92,8 @@ namespace KS3P.Processor
                 //If an exception occurred, disable AA for safety.
                 profile.antialiasing.enabled = succeeded;
             }
+            #endregion
+            #region AmbientOcclusion
             if (AmbientOcclusion != null)
             {
                 TWG.Load("AmbientOcclusion");
@@ -139,6 +104,8 @@ namespace KS3P.Processor
                 //Catch exception
                 profile.ambientOcclusion.enabled = succeeded;
             }
+            #endregion
+            #region Bloom
             if (Bloom != null)
             {
                 TWG.Load("Bloom");
@@ -150,6 +117,8 @@ namespace KS3P.Processor
                 profile.bloom.enabled = succeeded;
 
             }
+            #endregion
+            #region ChromaticAbberation
             if (ChromaticAbberation != null)
             {
                 TWG.Load("ChromaticAbberation");
@@ -160,6 +129,8 @@ namespace KS3P.Processor
                 //Catch
                 profile.chromaticAberration.enabled = succeeded;
             }
+            #endregion
+            #region ColorGrading
             if (ColorGrading != null)
             {
                 TWG.Load("ColorGrading");
@@ -168,8 +139,10 @@ namespace KS3P.Processor
                 //Process
                 profile.colorGrading.settings = EffectProcessor.ProcessColorGrading(ColorGrading, out succeeded);
                 //Catch
-                profile.chromaticAberration.enabled = succeeded;
+                profile.colorGrading.enabled = succeeded;
             }
+            #endregion
+            #region DepthOfField
             if (DepthOfField != null)
             {
                 TWG.Load("DepthOfField");
@@ -180,10 +153,11 @@ namespace KS3P.Processor
                 //Catch
                 profile.depthOfField.enabled = succeeded;
             }
+            #endregion
             //Dithering is not configurable
             profile.dithering.enabled = (Dithering != null);
             //Is dithering enabled = does the dithering node exist basically
-
+            #region EyeAdaptation
             if (EyeAdaptation != null)
             {
                 TWG.Load("EyeAdaptation");
@@ -194,8 +168,9 @@ namespace KS3P.Processor
                 //Catch
                 profile.eyeAdaptation.enabled = succeeded;
             }
-
+            #endregion
             //Fog has only one value to be edited
+            #region Fog
             if (Fog != null)
             {
                 TWG.Load("Fog");
@@ -212,7 +187,8 @@ namespace KS3P.Processor
                     profile.fog.enabled = true;
                 }
             }
-
+            #endregion
+            #region Grain
             if (Grain != null)
             {
                 TWG.Load("Grain");
@@ -223,7 +199,8 @@ namespace KS3P.Processor
                 //Catch
                 profile.grain.enabled = succeeded;
             }
-
+            #endregion
+            #region MotionBlur
             if (MotionBlur != null)
             {
                 TWG.Load("MotionBlur");
@@ -234,7 +211,8 @@ namespace KS3P.Processor
                 //Catch
                 profile.motionBlur.enabled = succeeded;
             }
-
+            #endregion
+            #region SSR
             if (ScreenSpaceReflection != null)
             {
                 TWG.Load("ScreenSpaceReflection");
@@ -245,7 +223,8 @@ namespace KS3P.Processor
                 //Catch
                 profile.screenSpaceReflection.enabled = succeeded;
             }
-
+            #endregion
+            #region UserLut
             if (UserLut != null)
             {
                 TWG.Load("UserLut");
@@ -256,7 +235,8 @@ namespace KS3P.Processor
                 //Catch
                 profile.userLut.enabled = succeeded;
             }
-
+            #endregion
+            #region Vignette
             if (Vignette != null)
             {
                 TWG.Load("Vignette");
@@ -267,9 +247,10 @@ namespace KS3P.Processor
                 //Catch
                 profile.vignette.enabled = succeeded;
             }
-
+            #endregion
             Debug.Log("[KSP_PostProcessing]: Parsing operation complete for profile [" + nameof(profile) + "].");
-            prof = profile;
+            return profile;
+
             //Note that we only enable a Post-Processing effect if the config node is detected, AND if no errors occurred during the processing.
 
         }
@@ -300,7 +281,7 @@ namespace KS3P.Processor
             p.userLut.enabled = false;
             p.vignette.enabled = false;
         }
-        
+
 
         /// <summary>
         /// Reads and processes an Anti-Aliasing Config Node
@@ -344,10 +325,10 @@ namespace KS3P.Processor
                 Debug.LogWarning("[KSP_PostProcessing]: Warning! Temporal Anti-Aliasing may not work correctly with MSAA enabled!");
                 settings.method = AntialiasingModel.Method.Taa;
                 float JitterSpread, MotionBlending, StationaryBlending, Sharpen;
-                
+
                 //Succeeded becomes true, if an exception occurs it will become false.
                 succeeded = true;
-                
+
                 //Jitter Spread
                 if (!float.TryParse(AANode.GetValue("Jitter"), out JitterSpread))
                 {
@@ -417,14 +398,14 @@ namespace KS3P.Processor
         internal static AmbientOcclusionModel.Settings ProcessAmbientOcclusion(ConfigNode AONode, out bool succeeded)
         {
             AmbientOcclusionModel.Settings settings = new AmbientOcclusionModel.Settings();
-            
+
             bool ambientOnly, downsampling, forceForwardCompatibility, highPrecision;
             float intensity, radius;
             int sampleCount;
             succeeded = true;
 
             //Ambient Only
-            if(!bool.TryParse(AONode.GetValue("Ambient_Only"), out ambientOnly))
+            if (!bool.TryParse(AONode.GetValue("Ambient_Only"), out ambientOnly))
             {
                 Debug.LogException(new InvalidCastException("[KSP_PostProcessing]: Error parsing [Ambient_Only] for module [Ambient Occlusion]! Disabling Ambient Occlusion!"));
                 succeeded = false;
@@ -548,7 +529,7 @@ namespace KS3P.Processor
             #region BloomSettings
             bool antiFlicker;
             float intensity, radius, softKnee, threshold;
-            
+
             //Anti-flicker
             if (!bool.TryParse(BNode.GetValue("Anti_Flicker"), out antiFlicker))
             {
@@ -584,7 +565,7 @@ namespace KS3P.Processor
             {
                 bloomSettings.radius = radius;
             }
-            
+
             //Soft_Knee
             if (!float.TryParse(BNode.GetValue("Soft_Knee"), out softKnee))
             {
@@ -1394,13 +1375,13 @@ namespace KS3P.Processor
             //We're done here.
             return settings;
         }
-        
+
         //The big one.
         internal static ColorGradingModel.Settings ProcessColorGrading(ConfigNode CGNode, out bool succeeded)
         {
             ColorGradingModel.Settings settings = new ColorGradingModel.Settings();
             succeeded = true;
-            
+
             string preset = CGNode.GetValue("Preset");
 
             //Are we going for ACES filmic?
@@ -1565,21 +1546,21 @@ namespace KS3P.Processor
             //We're done with this part.
             return settings;
         }
-        
+
         //Processes the channel mixer settings of a color grading model
         static ColorGradingModel.ChannelMixerSettings CG_ProcessMixerSettings(ConfigNode mixNode, out bool succeeded)
         {
             ColorGradingModel.ChannelMixerSettings settings = new ColorGradingModel.ChannelMixerSettings();
             settings = ColorGradingModel.ChannelMixerSettings.defaultSettings; //Init default settings as a framework
             succeeded = true;
-            
+
             if (mixNode == null)
             {
                 return settings;
             }
 
             Vector3 r, g, b;
-            
+
 
             try
             {
@@ -1598,7 +1579,7 @@ namespace KS3P.Processor
                 g = ConfigNode.ParseVector3(mixNode.GetValue("Green"));
                 settings.green = g;
             }
-            catch(InvalidCastException)
+            catch (InvalidCastException)
             {
                 Debug.LogException(new InvalidCastException("[KSP_PostProcessing]: Error parsing [Green] for module [ColorGrading_Mixer]! Disabling Color Grading!"));
                 succeeded = false;
@@ -1610,7 +1591,7 @@ namespace KS3P.Processor
                 b = ConfigNode.ParseVector3(mixNode.GetValue("Blue"));
                 settings.blue = b;
             }
-            catch(InvalidCastException)
+            catch (InvalidCastException)
             {
                 Debug.LogException(new InvalidCastException("[KSP_PostProcessing]: Error parsing [Blue] for module [ColorGrading_Mixer]! Disabling Color Grading!"));
                 succeeded = false;
@@ -1618,7 +1599,7 @@ namespace KS3P.Processor
             }
             return settings;
         }
-        
+
         //Processes the color wheel settings of a color grading model
         static ColorGradingModel.ColorWheelsSettings CG_ProcessColorWheels(ConfigNode wNode, out bool succeeded)
         {
@@ -1683,7 +1664,7 @@ namespace KS3P.Processor
                 {
                     wheelSettings.offset = ConfigNode.ParseColor(wNode.GetValue("Offset"));
                 }
-                catch(InvalidCastException)
+                catch (InvalidCastException)
                 {
                     Debug.LogException(new InvalidCastException("[KSP_PostProcessing]: Error parsing [Offset_Logarithmic] for module [ColorGrading_ColorWheels]! Disabling Color Grading!"));
                     succeeded = false;
@@ -1694,7 +1675,7 @@ namespace KS3P.Processor
                 {
                     wheelSettings.power = ConfigNode.ParseColor(wNode.GetValue("Power"));
                 }
-                catch(InvalidCastException)
+                catch (InvalidCastException)
                 {
                     Debug.LogException(new InvalidCastException("[KSP_PostProcessing]: Error parsing [Power_Logarithmic] for module [ColorGrading_ColorWheels]! Disabling Color Grading!"));
                     succeeded = false;
@@ -1705,7 +1686,7 @@ namespace KS3P.Processor
                 {
                     wheelSettings.slope = ConfigNode.ParseColor(wNode.GetValue("Slope"));
                 }
-                catch(InvalidCastException)
+                catch (InvalidCastException)
                 {
                     Debug.LogException(new InvalidCastException("[KSP_PostProcessing]: Error parsing [Slope_Logarithmic] for module [ColorGrading_ColorWheels]! Disabling Color Grading!"));
                     succeeded = false;
@@ -1723,7 +1704,7 @@ namespace KS3P.Processor
                 return settings;
             }
         }
-        
+
         //Processes the color curve settings of a color grading model
         static ColorGradingModel.CurvesSettings CG_ProcessCurveSettings(ConfigNode CNode, out bool succeeded)
         {
@@ -1992,7 +1973,7 @@ namespace KS3P.Processor
             else
             {
                 //We (try to) process all keys
-                for(int x = 0; x < Keys.Length; x++)
+                for (int x = 0; x < Keys.Length; x++)
                 {
                     try
                     {
@@ -2008,7 +1989,7 @@ namespace KS3P.Processor
             }
 
             //Set up the AnimationCurve
-            foreach(Vector2 key in KeyValues)
+            foreach (Vector2 key in KeyValues)
             {
                 internalCurve.AddKey(key.x, key.y);
             }

@@ -2,13 +2,12 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
-using KS3P.ShaderLoader;
 using UnityObject = UnityEngine.Object;
 
 
 //This namespace holds all the code of the Unity Post-Processing behaviour asset bundle.
 //Credit for all of the below code goes to Unity Technologies (with minor edits made by The White Guardian to make everything work in this new configuration)
-namespace KS3P.UnityPostProcessing
+namespace KS3P.Shaders
 {
     #region Runtime
 
@@ -4177,7 +4176,7 @@ namespace KS3P.UnityPostProcessing
             return m_InternalLoopingCurve.Evaluate(t);
         }
     }
-    
+
     public static class GraphicsUtils
     {
         public static bool isLinearColorSpace
@@ -4333,7 +4332,7 @@ namespace KS3P.UnityPostProcessing
 
             if (!m_Materials.TryGetValue(shaderName, out material))
             {
-                var shader = ShaderLoader.ShaderLoader.GetShader(shaderName);
+                var shader = ShaderLoader.GetShader(shaderName);
 
                 if (shader == null)
                     throw new ArgumentException(string.Format("Shader not found ({0})", shaderName));

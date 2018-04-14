@@ -4133,6 +4133,9 @@ namespace KS3P.Shaders
         [SerializeField]
         float m_Range;
 
+        [SerializeField]
+        Vector2 bounds;
+
         AnimationCurve m_InternalLoopingCurve;
 
         public ColorGradingCurve(AnimationCurve curve, float zeroValue, bool loop, Vector2 bounds)
@@ -4141,8 +4144,30 @@ namespace KS3P.Shaders
             m_ZeroValue = zeroValue;
             m_Loop = loop;
             m_Range = bounds.magnitude;
+            this.bounds = bounds;
         }
 
+        public bool IsLooped
+        {
+            get
+            {
+                return m_Loop;
+            }
+        }
+        public float ZeroValue
+        {
+            get
+            {
+                return m_ZeroValue;
+            }
+        }
+        public Vector2 Range
+        {
+            get
+            {
+                return bounds;
+            }
+        }
         public void Cache()
         {
             if (!m_Loop)
